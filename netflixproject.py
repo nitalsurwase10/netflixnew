@@ -3,6 +3,7 @@
 
 from pathlib import Path
 import base64
+from io import BytesIO
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -33,17 +34,39 @@ BACKGROUND_PATH = next(
 PALETTE = ["#e50914", "#b20710", "#ff3038", "#8b0000", "#c21824", "#721018", "#a20a0a", "#5c080d"]
 
 
-@st.cache_data
-def load_data():
-	for filename in DATA_FILES:
-		path = Path(__file__).resolve().parent / filename
-		if path.exists():
-			data = pd.read_csv(path)
-			data["Watch_Date"] = pd.to_datetime(data["Watch_Date"], errors="coerce")
-			for column in ("Monthly_Revenue", "Rating", "Watch_Time_Minutes", "Watch_Count"):
-				data[column] = pd.to_numeric(data[column], errors="coerce")
-			return data.drop_duplicates()
-	raise FileNotFoundError(f"Could not find a dataset beside this app. Tried: {', '.join(DATA_FILES)}")
+def load_data(uploaded_content=None):
+	if uploaded_content is not None:
+		data = pd.read_csv(BytesIO(uploaded_content))
+	else:
+		data_path = next(
+			(
+				path
+				for path in (PROJECT_DIR / filename for filename in DATA_FILES)
+				if path.exists()
+			),
+			PROJECT_DIR / "sample_netflix.csv",
+		)
+		data = pd.read_csv(data_path)
+
+	required_columns = (
+		"Customer_ID",
+		"Region",
+		"Subscription_Plan",
+		"Category",
+		"Watch_Date",
+		"Monthly_Revenue",
+		"Rating",
+		"Watch_Time_Minutes",
+		"Watch_Count",
+	)
+	missing_columns = [column for column in required_columns if column not in data.columns]
+	if missing_columns:
+		raise ValueError(f"Dataset is missing required columns: {', '.join(missing_columns)}")
+
+	data["Watch_Date"] = pd.to_datetime(data["Watch_Date"], errors="coerce")
+	for column in ("Monthly_Revenue", "Rating", "Watch_Time_Minutes", "Watch_Count"):
+		data[column] = pd.to_numeric(data[column], errors="coerce")
+	return data.drop_duplicates()
 
 
 def format_currency(value):
@@ -64,9 +87,20 @@ def show_chart(figure):
 	plt.close(figure)
 
 
+uploaded_file = st.sidebar.file_uploader(
+	"Upload your Netflix dataset",
+	type="csv",
+	help="Your uploaded file is used for this session and is not added to the project.",
+)
+
 try:
-	netflix = load_data()
-except (FileNotFoundError, KeyError, pd.errors.ParserError) as error:
+	if uploaded_file is not None:
+		netflix = load_data(uploaded_file.getvalue())
+	else:
+		netflix = load_data()
+		if not any((PROJECT_DIR / filename).exists() for filename in DATA_FILES):
+			st.info("Showing synthetic demo data. Upload your own CSV in the sidebar to explore your data.")
+except (FileNotFoundError, ValueError, pd.errors.EmptyDataError, pd.errors.ParserError) as error:
 	st.error(f"Unable to load the Netflix dataset: {error}")
 	st.stop()
 
@@ -206,6 +240,3 @@ with right:
 
 with st.expander("View filtered records"):
 	st.dataframe(filtered, width="stretch", hide_index=True)
-
-
-

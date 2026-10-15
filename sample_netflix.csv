@@ -1,0 +1,13 @@
+Customer_ID,Region,Subscription_Plan,Category,Watch_Date,Monthly_Revenue,Rating,Watch_Time_Minutes,Watch_Count
+DEMO001,North,Basic,Drama,2026-01-08,299,4.2,120,3
+DEMO002,South,Standard,Comedy,2026-01-19,499,3.8,95,2
+DEMO003,East,Premium,Thriller,2026-02-03,649,4.7,145,4
+DEMO004,West,Basic,Documentary,2026-02-15,299,4.1,80,2
+DEMO005,North,Standard,Thriller,2026-03-06,499,4.5,132,3
+DEMO006,South,Premium,Drama,2026-03-21,649,3.9,110,2
+DEMO007,East,Basic,Comedy,2026-04-09,299,4.3,101,3
+DEMO008,West,Standard,Documentary,2026-04-24,499,4.0,88,2
+DEMO009,North,Premium,Comedy,2026-05-05,649,4.6,154,5
+DEMO010,South,Basic,Thriller,2026-05-17,299,3.7,126,3
+DEMO011,East,Standard,Drama,2026-06-02,499,4.4,118,4
+DEMO012,West,Premium,Documentary,2026-06-23,649,4.8,97,2
